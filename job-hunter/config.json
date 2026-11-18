@@ -1,0 +1,12 @@
+{
+  "titles": ["video producer","video editor","documentary editor","documentary","storytelling","storyteller","e-learning","elearning","e learning","instructional designer","instructional design","learning experience","learning designer","curriculum developer","content writer","content writing","copywriter","scriptwriter","script writer","motion graphics","motion designer","explainer video","course creator","learning content"],
+  "avoid": ["software engineer","backend","frontend","full stack","devops","data scientist","machine learning engineer","sales representative","account executive","nurse","driver","accountant","security engineer","site reliability"],
+  "restricted_regions": ["us only","usa only","u.s. only","united states only","us-based","u.s.-based","must be located in the us","canada only","uk only","europe only","eu only","emea only","latam only","north america only","australia only","germany only","must reside in"],
+  "worldwide_words": ["worldwide","anywhere","global","international","africa","nigeria","any location","remote"],
+  "min_ai_fit": 6,
+  "max_age_days": 7,
+  "max_messages_per_run": 15,
+  "sources": ["remoteok","remotive","weworkremotely","jobicy","workingnomads","himalayas"],
+  "remotive_queries": ["video","instructional design","e-learning","content writer","storytelling","documentary"],
+  "browser_sources": []
+}
