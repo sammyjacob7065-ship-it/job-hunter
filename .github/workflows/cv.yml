@@ -11,6 +11,9 @@ jobs:
   cv:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: "job-hunter (2)/job-hunter"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,7 +28,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       - uses: actions/upload-artifact@v4
-        with: { name: cv, path: out/ }
+        with: { name: cv, path: "job-hunter (2)/job-hunter/out/" }
       - name: Save draft
         run: |
           git config user.name hunter; git config user.email hunter@users.noreply.github.com
