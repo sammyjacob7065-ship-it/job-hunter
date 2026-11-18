@@ -10,6 +10,9 @@ jobs:
   hunt:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: "job-hunter (2)/job-hunter"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
