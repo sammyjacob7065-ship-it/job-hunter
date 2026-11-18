@@ -105,7 +105,10 @@ def run():
     for j in new:
         seen[j["id"]] = today
         d = parse_date(j["date"])
-        if d and (now - d).days > cfg["max_age_days"]: stats["too-old"] += 1; continue
+        if d and (now - d).days > cfg["max_age_days"]:
+            stats["too-old"] += 1
+            if match(j, cfg): dropped.append("OLD but niche: " + j["title"] + " | " + str(j["date"])[:16])
+            continue
         m = match(j, cfg)
         if not m:
             w = why_not(j, cfg); stats[w] += 1
