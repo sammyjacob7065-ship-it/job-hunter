@@ -2,8 +2,12 @@ name: cv
 on:
   workflow_dispatch:
     inputs:
-      job_id: { description: "Job id from the Telegram message (the code under the link)", required: false }
-      url:    { description: "OR paste any job page link", required: false }
+      job_id:   { description: "Job code", required: false }
+      title:    { description: "Job title", required: false }
+      company:  { description: "Company", required: false }
+      to_addr:  { description: "Gmail to apply to (optional)", required: false }
+      url:      { description: "Job link", required: false }
+      job_text: { description: "Job description text", required: false }
 permissions:
   contents: write
 concurrency: drafts
@@ -20,10 +24,21 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install requests playwright && playwright install --with-deps chromium
       - run: |
-          if [ -n "$JOB_ID" ]; then python cv.py --job-id "$JOB_ID"; else python cv.py --url "$JOB_URL"; fi
+          if [ -n "$JOB_TEXT" ]; then
+            printf '%s' "$JOB_TEXT" > job.txt
+            python cv.py --text-file job.txt --id "$JOB_ID" --title "$TITLE" --company "$COMPANY" --to "$TO_ADDR" --url "$JOB_URL"
+          elif [ -n "$JOB_URL" ]; then
+            python cv.py --url "$JOB_URL" --id "$JOB_ID" --title "$TITLE" --company "$COMPANY" --to "$TO_ADDR"
+          else
+            python cv.py --job-id "$JOB_ID"
+          fi
         env:
           JOB_ID: ${{ inputs.job_id }}
+          TITLE: ${{ inputs.title }}
+          COMPANY: ${{ inputs.company }}
+          TO_ADDR: ${{ inputs.to_addr }}
           JOB_URL: ${{ inputs.url }}
+          JOB_TEXT: ${{ inputs.job_text }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
