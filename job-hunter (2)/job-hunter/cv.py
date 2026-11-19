@@ -15,6 +15,7 @@ You get TEMPLATE (JSON of the candidate's true CV) and the JOB. Return JSON with
  "summary": str (60-95 words, first sentence speaks to this job's main need),
  "competencies": [[title, text], ...] (same items as template, reordered by relevance, text re-worded with the job's vocabulary),
  "services": [[title, text], ...], "approach": [[title, text], ...],
+ "projects": [[title, text], ...] (same projects as template; put the most relevant to this job first; keep all),
  "cover_note": str (90-130 words, plain direct email body, greets 'Hello', no flattery, ends 'Jacob Samson'),
  "email_subject": str, "company": str, "role": str}
 HARD RULES: Use ONLY facts in TEMPLATE. Never invent employers, years, degrees, tools, clients, numbers or results.
@@ -42,7 +43,7 @@ CSS = """@page{size:A4;margin:14mm 15mm}*{box-sizing:border-box}body{font:9.6pt/
 h1{font-size:21pt;margin:0;letter-spacing:.5px}.hl{font-size:10.6pt;font-weight:700;color:#14507a;margin:2px 0 3px}
 .ct{color:#444;font-size:9pt}.ct a{color:#14507a;text-decoration:none}.av{font-weight:700;margin-top:3px}
 h2{font-size:10.2pt;letter-spacing:1.2px;color:#14507a;border-bottom:1.3px solid #14507a;padding-bottom:2px;margin:11px 0 5px}
-p{margin:0 0 4px}.it{margin:0 0 3.5px}.it b{color:#111}"""
+p{margin:0 0 4px}.it{margin:0 0 3.5px;break-inside:avoid}h2{break-after:avoid}.it b{color:#111}"""
 
 def render(cv, path):
     li = lambda items: "".join(f"<div class='it'><b>{H.escape(t)}:</b> {H.escape(x)}</div>" for t, x in items)
@@ -53,8 +54,10 @@ def render(cv, path):
 <h2>EXECUTIVE PROFILE</h2><p>{H.escape(cv['summary'])}</p>
 <h2>CORE COMPETENCIES</h2>{li(cv['competencies'])}
 <h2>SELECTED SERVICE CAPABILITIES</h2>{li(cv['services'])}
+<h2>AI AUTOMATION PROJECTS (BUILT AND RUNNING)</h2>{li(cv.get('projects', []))}
 <h2>PROFESSIONAL APPROACH &amp; VALUE PROPOSITION</h2>{li(cv['approach'])}
-<h2>EDUCATION</h2><p>{H.escape(cv['education'])}</p></body></html>"""
+<h2>EDUCATION</h2><p>{H.escape(cv['education'])}</p>
+<p style="margin-top:8px;font-style:italic;color:#14507a">More work samples, full project details and references are available on request.</p></body></html>"""
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(); pg = b.new_page(); pg.set_content(doc)
@@ -93,8 +96,15 @@ def main():
     cv, note = dict(tpl), ""
     if r:
         for k in ("headline", "summary", "competencies", "services", "approach"): cv[k] = r[k]
+        if isinstance(r.get("projects"), list) and len(r["projects"]) >= len(tpl.get("projects", [])): cv["projects"] = r["projects"]
         company, title = r.get("company") or company, r.get("role") or title
-        note = f"Subject: {r.get('email_subject','')}\n\n{r['cover_note']}"
+        cn = r["cover_note"].rstrip()
+        if "on request" not in cn.lower():
+            sig = "Jacob Samson"
+            body = cn[:cn.rfind(sig)].rstrip() if sig in cn else cn
+            cn = body + "\n\nMore samples of my work are available on request.\n\n" + sig
+        r["cover_note"] = cn
+        note = f"Subject: {r.get('email_subject','')}\n\n{cn}"
     else:
         note = "(AI tailoring failed or was rejected - this is your untailored template CV.)"
     os.makedirs(OUT, exist_ok=True)
