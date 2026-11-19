@@ -72,18 +72,23 @@ def tg_file(path, caption, buttons=None):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--job-id"); ap.add_argument("--url"); ap.add_argument("--text-file")
+    ap.add_argument("--id"); ap.add_argument("--title", default=""); ap.add_argument("--company", default=""); ap.add_argument("--to", default="")
     a = ap.parse_args()
     tpl = json.load(open(os.path.join(HERE, "cv_template.json")))
     title = company = to_addr = ""
-    if a.job_id:
+    if a.text_file:
+        text, url = open(a.text_file).read(), (a.url or "")
+        title, company, to_addr = a.title, a.company, a.to
+    elif a.job_id:
         j = json.load(open(os.path.join(HERE, "state", "jobs.json")))[a.job_id.strip()]
         text, title, company, url = f"{j['title']} at {j['company']}\n{j['description']}", j["title"], j["company"], j["url"]
         g = re.findall(r"[A-Za-z0-9._%+-]+@gmail\.com", j["description"], re.I); to_addr = g[0] if g else ""
     elif a.url:
+        title, company, to_addr = a.title, a.company, a.to
         text = re.sub(r"\s+", " ", re.sub(r"<(script|style)[\s\S]*?</\1>|<[^>]+>", " ",
                requests.get(a.url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30).text)); url = a.url
     else:
-        text, url = open(a.text_file).read(), ""
+        text, url = "", ""
     r = tailor(tpl, text)
     cv, note = dict(tpl), ""
     if r:
@@ -97,9 +102,9 @@ def main():
     pdf = os.path.join(OUT, f"Jacob_Samson_CV_{slug}.pdf"); render(cv, pdf)
     open(os.path.join(OUT, f"cover_{slug}.txt"), "w").write(note)
     buttons = None
-    if a.job_id and to_addr and r:
+    sid = (a.job_id or a.id or "").strip()
+    if sid and to_addr and r:
         dd = os.path.join(HERE, "state", "drafts"); os.makedirs(dd, exist_ok=True)
-        sid = a.job_id.strip()
         import shutil; shutil.copy(pdf, os.path.join(dd, sid + ".pdf"))
         json.dump({"to": to_addr, "subject": r.get("email_subject") or f"Application: {title}", "body": r["cover_note"],
                    "pdf": f"state/drafts/{sid}.pdf", "title": title, "company": company},
